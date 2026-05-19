@@ -48,6 +48,9 @@ class PurchaseRead(BaseModel):
     supplier_id: int
     supplier_name: str
     created_at: datetime
+    status: str
+    procurement_run_id: int | None = None
+    agent_summary: str | None = None
     items: list[PurchaseItemRead]
     total: Decimal
 
@@ -59,6 +62,9 @@ class PurchaseListItem(BaseModel):
     created_at: datetime
     item_count: int
     total: Decimal
+    status: str
+    procurement_run_id: int | None = None
+    agent_summary: str | None = None
 
 
 class PurchaseListResponse(BaseModel):

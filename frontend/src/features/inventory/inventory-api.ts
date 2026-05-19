@@ -39,6 +39,8 @@ function buildPayload(values: InventoryFormValues, includeInitialStock: boolean)
     price: values.price,
     cost_price: values.cost_price,
     low_stock_threshold: values.low_stock_threshold,
+    default_supplier_id: values.default_supplier_id,
+    promotion_reorder_boost: values.promotion_reorder_boost,
   }
   if (includeInitialStock) {
     payload.initial_stock = values.initial_stock ?? 0

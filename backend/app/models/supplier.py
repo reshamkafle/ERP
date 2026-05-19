@@ -14,3 +14,7 @@ class Supplier(Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     purchases: Mapped[list["Purchase"]] = relationship(back_populates="supplier")
+    default_products: Mapped[list["Product"]] = relationship(
+        back_populates="default_supplier",
+        foreign_keys="Product.default_supplier_id",
+    )

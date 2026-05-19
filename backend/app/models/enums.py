@@ -21,3 +21,22 @@ class ApprovalStatus(str, enum.Enum):
     PENDING = "PENDING"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
+
+
+class PurchaseStatus(str, enum.Enum):
+    DRAFT = "DRAFT"
+    RECEIVED = "RECEIVED"
+
+
+class ProcurementRunStatus(str, enum.Enum):
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
+class PromotionRunStatus(str, enum.Enum):
+    IN_PROGRESS = "IN_PROGRESS"
+    DRAFT_REVIEW = "DRAFT_REVIEW"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    FAILED = "FAILED"

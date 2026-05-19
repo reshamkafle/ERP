@@ -36,6 +36,9 @@ export function AppLayout() {
                   <Link className="text-muted-foreground hover:text-foreground" to="/purchases">
                     Purchases
                   </Link>
+                  <Link className="text-muted-foreground hover:text-foreground" to="/promotions">
+                    Promotions
+                  </Link>
                 </>
               ) : null}
               <Link className="text-muted-foreground hover:text-foreground" to="/sales">

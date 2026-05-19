@@ -37,6 +37,8 @@ export const inventoryFormSchema = z
     price: z.number().min(0),
     cost_price: z.number().min(0),
     low_stock_threshold: z.number().min(0),
+    default_supplier_id: z.number().int().positive().nullable(),
+    promotion_reorder_boost: z.boolean(),
     initial_stock: z.number().min(0).optional(),
   })
   .superRefine((data, ctx) => {

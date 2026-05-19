@@ -18,6 +18,10 @@ class Product(Base):
     alternate_codes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"), nullable=True)
+    default_supplier_id: Mapped[int | None] = mapped_column(
+        ForeignKey("suppliers.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     sub_category: Mapped[str | None] = mapped_column(String(120), nullable=True)
     product_line: Mapped[str | None] = mapped_column(String(120), nullable=True)
     item_type: Mapped[ItemType] = mapped_column(
@@ -68,7 +72,12 @@ class Product(Base):
     cost_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=0)
     stock: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     low_stock_threshold: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    promotion_reorder_boost: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     category: Mapped["Category | None"] = relationship(back_populates="products")
+    default_supplier: Mapped["Supplier | None"] = relationship(
+        back_populates="default_products",
+        foreign_keys="Product.default_supplier_id",
+    )
     sale_items: Mapped[list["SaleItem"]] = relationship(back_populates="product")
     purchase_items: Mapped[list["PurchaseItem"]] = relationship(back_populates="product")

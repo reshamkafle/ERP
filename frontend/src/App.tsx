@@ -14,6 +14,7 @@ import { SupplierDetailPage } from "@/pages/SupplierDetailPage"
 import { SuppliersPage } from "@/pages/SuppliersPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { PosPage } from "@/pages/PosPage"
+import { PromotionsPage } from "@/pages/PromotionsPage"
 import { SaleDetailPage } from "@/pages/SaleDetailPage"
 import { SalesPage } from "@/pages/SalesPage"
 
@@ -44,6 +45,7 @@ function App() {
               <Route path="/suppliers" element={<SuppliersPage />} />
               <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
               <Route path="/purchases" element={<PurchasesPage />} />
+              <Route path="/promotions" element={<PromotionsPage />} />
               <Route path="/sales" element={<SalesPage />} />
               <Route path="/sales/:id" element={<SaleDetailPage />} />
               <Route path="/pos" element={<PosPage />} />

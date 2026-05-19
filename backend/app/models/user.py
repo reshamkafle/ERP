@@ -23,3 +23,9 @@ class User(Base):
 
     sales: Mapped[list["Sale"]] = relationship(back_populates="created_by_user")
     purchases: Mapped[list["Purchase"]] = relationship(back_populates="created_by_user")
+    procurement_runs: Mapped[list["ProcurementRun"]] = relationship(
+        back_populates="created_by_user",
+    )
+    promotion_runs: Mapped[list["PromotionRun"]] = relationship(
+        back_populates="created_by_user",
+    )

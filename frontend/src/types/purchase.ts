@@ -27,6 +27,9 @@ export type PurchaseListItem = {
   created_at: string
   item_count: number
   total: string
+  status: string
+  procurement_run_id: number | null
+  agent_summary: string | null
 }
 
 export type PurchaseListResponse = {
@@ -49,6 +52,17 @@ export type PurchaseRead = {
   supplier_id: number
   supplier_name: string
   created_at: string
+  status: string
+  procurement_run_id: number | null
+  agent_summary: string | null
   items: PurchaseItemRead[]
   total: string
+}
+
+export type ProcurementRunResponse = {
+  id: number
+  status: string
+  draft_purchase_ids: number[]
+  warnings: string[]
+  error_message: string | null
 }

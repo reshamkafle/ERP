@@ -41,6 +41,8 @@ class InventoryItemBase(BaseModel):
     price: Decimal = Field(default=Decimal("0"), ge=0)
     cost_price: Decimal = Field(default=Decimal("0"), ge=0)
     low_stock_threshold: int = Field(default=0, ge=0)
+    default_supplier_id: int | None = Field(default=None)
+    promotion_reorder_boost: bool = False
 
 class InventoryItemCreate(InventoryItemBase):
     initial_stock: int = Field(default=0, ge=0)
@@ -92,9 +94,18 @@ class InventoryItemUpdate(BaseModel):
     price: Decimal | None = Field(default=None, ge=0)
     cost_price: Decimal | None = Field(default=None, ge=0)
     low_stock_threshold: int | None = Field(default=None, ge=0)
+    default_supplier_id: int | None = None
+    promotion_reorder_boost: bool | None = None
 
 
 class CategoryBrief(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+
+
+class SupplierBrief(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -107,6 +118,7 @@ class InventoryItemRead(InventoryItemBase):
     id: int
     stock: int
     category: CategoryBrief | None = None
+    default_supplier: SupplierBrief | None = None
 
 
 class InventoryListResponse(BaseModel):

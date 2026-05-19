@@ -17,7 +17,10 @@ async def list_inventory_items(
     skip: int = 0,
     limit: int = 50,
 ) -> tuple[list[Product], int]:
-    stmt = select(Product).options(selectinload(Product.category))
+    stmt = select(Product).options(
+        selectinload(Product.category),
+        selectinload(Product.default_supplier),
+    )
     count_stmt = select(func.count()).select_from(Product)
 
     if search:
@@ -50,7 +53,10 @@ async def list_inventory_items(
 async def get_inventory_item(db: AsyncSession, item_id: int) -> Product | None:
     result = await db.execute(
         select(Product)
-        .options(selectinload(Product.category))
+        .options(
+            selectinload(Product.category),
+            selectinload(Product.default_supplier),
+        )
         .where(Product.id == item_id),
     )
     return result.scalar_one_or_none()

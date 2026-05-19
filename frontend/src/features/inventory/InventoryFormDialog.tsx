@@ -15,6 +15,7 @@ import {
   type InventoryFormValues,
 } from "@/lib/inventory-schema"
 import type { Category, InventoryItem } from "@/types/inventory"
+import type { Supplier } from "@/types/supplier"
 
 const defaultValues: InventoryFormValues = {
   sku: "",
@@ -52,6 +53,8 @@ const defaultValues: InventoryFormValues = {
   price: 0,
   cost_price: 0,
   low_stock_threshold: 0,
+  default_supplier_id: null,
+  promotion_reorder_boost: false,
   initial_stock: 0,
 }
 
@@ -92,6 +95,8 @@ function itemToForm(item: InventoryItem): InventoryFormValues {
     price: Number(item.price),
     cost_price: Number(item.cost_price),
     low_stock_threshold: item.low_stock_threshold,
+    default_supplier_id: item.default_supplier_id ?? item.default_supplier?.id ?? null,
+    promotion_reorder_boost: item.promotion_reorder_boost,
   }
 }
 
@@ -99,10 +104,11 @@ type Props = {
   open: boolean
   item: InventoryItem | null
   categories: Category[]
+  suppliers: Supplier[]
   onClose: () => void
 }
 
-export function InventoryFormDialog({ open, item, categories, onClose }: Props) {
+export function InventoryFormDialog({ open, item, categories, suppliers, onClose }: Props) {
   const queryClient = useQueryClient()
   const isEdit = item !== null
 
@@ -336,6 +342,24 @@ export function InventoryFormDialog({ open, item, categories, onClose }: Props) 
               <Field label="Low stock threshold">
                 <Input type="number" {...register("low_stock_threshold", { valueAsNumber: true })} />
               </Field>
+              <Field label="Default supplier (for AI purchase orders)">
+                <Select
+                  {...register("default_supplier_id", {
+                    setValueAs: (v) => (v === "" || v === undefined ? null : Number(v)),
+                  })}
+                >
+                  <option value="">— None —</option>
+                  {suppliers.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                <input type="checkbox" {...register("promotion_reorder_boost")} />
+                Promotion / campaign reorder boost (AI prioritizes this SKU)
+              </label>
               {!isEdit ? (
                 <Field label="Initial stock">
                   <Input type="number" {...register("initial_stock", { valueAsNumber: true })} />

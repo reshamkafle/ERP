@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { InventoryFormDialog } from "@/features/inventory/InventoryFormDialog"
 import { deleteInventoryItem, fetchCategories, fetchInventory } from "@/features/inventory/inventory-api"
+import { fetchSuppliers } from "@/features/suppliers/suppliers-api"
 import { useAuth } from "@/context/AuthContext"
 import type { InventoryItem, ItemLifecycleStatus, ItemType } from "@/types/inventory"
 
@@ -36,6 +37,11 @@ export function InventoryPage() {
   const categoriesQuery = useQuery({
     queryKey: ["inventory", "categories"],
     queryFn: fetchCategories,
+  })
+
+  const suppliersQuery = useQuery({
+    queryKey: ["suppliers", "list", "inventory-form"],
+    queryFn: () => fetchSuppliers({ limit: 200 }),
   })
 
   const listQuery = useQuery({
@@ -66,6 +72,7 @@ export function InventoryPage() {
 
   const items = listQuery.data?.items ?? []
   const categories = categoriesQuery.data ?? []
+  const suppliers = suppliersQuery.data?.items ?? []
   const isAdmin = user?.role === "ADMIN"
 
   const lowStockIds = useMemo(
@@ -232,6 +239,7 @@ export function InventoryPage() {
         open={dialogOpen}
         item={editing}
         categories={categories}
+        suppliers={suppliers}
         onClose={() => {
           setDialogOpen(false)
           setEditing(null)

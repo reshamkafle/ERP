@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     admin_email: str = "admin@example.com"
     admin_password: str = "changeme123"
 
+    # OpenAI-compatible LLM (Ollama, vLLM, LiteLLM). Leave base URL empty for rule-only procurement agents.
+    llm_base_url: str = ""
+    llm_api_key: str = ""
+    llm_model: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

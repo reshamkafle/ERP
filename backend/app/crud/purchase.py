@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.crud import supplier as supplier_crud
-from app.models.enums import ItemLifecycleStatus
+from app.models.enums import ItemLifecycleStatus, PurchaseStatus
 from app.models.product import Product
 from app.models.purchase import Purchase, PurchaseItem
 from app.schemas.purchase import PurchaseCreate
@@ -90,6 +90,10 @@ async def create_purchase(
     payload: PurchaseCreate,
     *,
     created_by_id: int,
+    purchase_status: PurchaseStatus = PurchaseStatus.RECEIVED,
+    procurement_run_id: int | None = None,
+    agent_metadata: dict | None = None,
+    commit: bool = True,
 ) -> Purchase:
     supplier = await supplier_crud.get_supplier(db, payload.supplier_id)
     if supplier is None:
@@ -128,7 +132,13 @@ async def create_purchase(
                 detail=f"Product {product.sku} is not available for purchasing",
             )
 
-    purchase = Purchase(supplier_id=payload.supplier_id, created_by_id=created_by_id)
+    purchase = Purchase(
+        supplier_id=payload.supplier_id,
+        created_by_id=created_by_id,
+        status=purchase_status,
+        procurement_run_id=procurement_run_id,
+        agent_metadata=agent_metadata,
+    )
     db.add(purchase)
     await db.flush()
 
@@ -142,9 +152,75 @@ async def create_purchase(
                 unit_cost=unit_cost,
             ),
         )
-        product.stock += quantity
-        product.cost_price = unit_cost
+        if purchase_status == PurchaseStatus.RECEIVED:
+            product.stock += quantity
+            product.cost_price = unit_cost
 
+    if commit:
+        await db.commit()
+    else:
+        await db.flush()
+
+    loaded = await db.execute(
+        select(Purchase)
+        .options(
+            selectinload(Purchase.items).selectinload(PurchaseItem.product),
+            selectinload(Purchase.supplier),
+        )
+        .where(Purchase.id == purchase.id),
+    )
+    return loaded.scalar_one()
+
+
+async def confirm_draft_purchase(
+    db: AsyncSession,
+    purchase_id: int,
+    *,
+    confirmed_by_id: int,
+) -> Purchase:
+    purchase_result = await db.execute(
+        select(Purchase)
+        .options(selectinload(Purchase.items))
+        .where(Purchase.id == purchase_id)
+        .with_for_update(),
+    )
+    purchase = purchase_result.scalar_one_or_none()
+    if purchase is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Purchase not found")
+    if purchase.status != PurchaseStatus.DRAFT:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail="Only draft purchases can be confirmed",
+        )
+    if purchase.supplier_id is None:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail="Draft purchase has no supplier",
+        )
+
+    product_ids = [item.product_id for item in purchase.items]
+    if not product_ids:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Purchase has no lines")
+
+    pr_result = await db.execute(
+        select(Product).where(Product.id.in_(product_ids)).with_for_update(),
+    )
+    products = {p.id: p for p in pr_result.scalars().all()}
+    if len(products) != len(set(product_ids)):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Product missing for purchase line")
+
+    for item in purchase.items:
+        product = products[item.product_id]
+        if product.lifecycle_status != ItemLifecycleStatus.ACTIVE:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                detail=f"Product {product.sku} is not available for receiving",
+            )
+        product.stock += item.quantity
+        product.cost_price = item.unit_cost
+
+    purchase.status = PurchaseStatus.RECEIVED
+    purchase.created_by_id = confirmed_by_id
     await db.commit()
 
     loaded = await db.execute(
@@ -156,3 +232,19 @@ async def create_purchase(
         .where(Purchase.id == purchase.id),
     )
     return loaded.scalar_one()
+
+
+async def discard_draft_purchase(db: AsyncSession, purchase_id: int) -> None:
+    purchase_result = await db.execute(
+        select(Purchase).where(Purchase.id == purchase_id).with_for_update(),
+    )
+    purchase = purchase_result.scalar_one_or_none()
+    if purchase is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Purchase not found")
+    if purchase.status != PurchaseStatus.DRAFT:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail="Only draft purchases can be discarded",
+        )
+    await db.delete(purchase)
+    await db.commit()

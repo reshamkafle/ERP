@@ -46,6 +46,9 @@ export type InventoryItem = {
   cost_price: string
   stock: number
   low_stock_threshold: number
+  default_supplier_id: number | null
+  default_supplier: { id: number; name: string } | null
+  promotion_reorder_boost: boolean
 }
 
 export type InventoryListResponse = {
@@ -89,5 +92,7 @@ export type InventoryItemInput = {
   price: string
   cost_price: string
   low_stock_threshold: number
+  default_supplier_id?: number | null
+  promotion_reorder_boost: boolean
   initial_stock?: number
 }

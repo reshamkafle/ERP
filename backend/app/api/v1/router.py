@@ -6,6 +6,8 @@ from app.api.v1.endpoints import (
     dashboard,
     health,
     inventory,
+    procurement,
+    promotion_runs,
     purchases,
     reports,
     sales,
@@ -20,5 +22,7 @@ api_router.include_router(reports.router, tags=["reports"])
 api_router.include_router(inventory.router, tags=["inventory"])
 api_router.include_router(customers.router, tags=["customers"])
 api_router.include_router(suppliers.router, tags=["suppliers"])
+api_router.include_router(procurement.router, tags=["procurement"])
+api_router.include_router(promotion_runs.router, tags=["promotions"])
 api_router.include_router(purchases.router, tags=["purchases"])
 api_router.include_router(sales.router, tags=["sales"])

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.crud import inventory as inventory_crud
+from app.crud import supplier as supplier_crud
 from app.dependencies.auth import require_roles
 from app.models.enums import ItemLifecycleStatus, ItemType
 from app.models.purchase import PurchaseItem
@@ -23,6 +24,14 @@ from app.schemas.inventory import (
 router = APIRouter(prefix="/inventory")
 
 InventoryRoles = require_roles(UserRole.ADMIN, UserRole.MANAGER)
+
+
+async def _ensure_default_supplier(db: AsyncSession, supplier_id: int | None) -> None:
+    if supplier_id is None:
+        return
+    sup = await supplier_crud.get_supplier(db, supplier_id)
+    if sup is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Default supplier not found")
 
 
 @router.get("", response_model=InventoryListResponse)
@@ -92,6 +101,7 @@ async def create_item(
         category = await inventory_crud.get_category(db, body.category_id)
         if category is None:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Category not found")
+    await _ensure_default_supplier(db, body.default_supplier_id)
     existing = await inventory_crud.get_by_sku(db, body.sku)
     if existing is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, detail="SKU already exists")
@@ -113,6 +123,8 @@ async def update_item(
         category = await inventory_crud.get_category(db, body.category_id)
         if category is None:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Category not found")
+    if body.default_supplier_id is not None:
+        await _ensure_default_supplier(db, body.default_supplier_id)
     if body.sku is not None:
         existing = await inventory_crud.get_by_sku(db, body.sku, exclude_id=item_id)
         if existing is not None:
