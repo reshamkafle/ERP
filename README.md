@@ -133,3 +133,36 @@ This ERP proves that speed and quality are not mutually exclusive. By intelligen
 Contributions are welcome! Please read CONTRIBUTING.md before submitting a Pull Request.
 📄 License
 Distributed under the MIT License. See LICENSE for more information.
+
+---
+
+## 🔮 Upcoming Features
+
+### Phase 2: Core Enhancements (Build Next – 3-6 Months)
+
+- Style-Color-Size (SKU) Matrix + Variant Management
+- Multi-Level BOM (Fabrics/Trims/Consumption/Wastage)
+- Advanced Production Planning & Scheduling (Line balancing, CMT, Cut orders)
+- Fabric & Raw Material Tracking (Roll/Lot, Barcode/RFID)
+- Enhanced WMS
+- Basic TMS Lite
+
+### Phase 3: Operations Optimization & Integration (Next 6-9 Months)
+
+- Quality Control & Inspection (AQL, Mobile Audits)
+- Subcontractor / Job Work Management
+- Cut Planning & Marker Optimization
+- Full TMS (GPS + Route Optimization)
+- Fleet Management
+- Advanced Order Fulfillment & Reverse Logistics
+- MRP + Demand Forecasting
+- Procurement & Supplier Portal
+
+### Phase 4: Analytics, Compliance & Scalability (9-12+ Months)
+
+- Real-time BI Dashboards & Predictive Analytics
+- Barcode/RFID + Full Mobile Apps
+- Finance & Compliance (Multi-currency, Exports, GST/VAT)
+- Supply Chain Visibility Portal
+- AI/ML Add-ons
+- Third-Party Integrations (Accounting, E-commerce, EDI, IoT)
