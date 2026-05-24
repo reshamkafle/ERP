@@ -1,5 +1,6 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from uuid import uuid4
 
 import bcrypt
 from jose import JWTError, jwt
@@ -22,13 +23,21 @@ def get_password_hash(password: str) -> str:
 def create_access_token(
     subject: str,
     role: str,
+    *,
+    token_version: int = 0,
     expires_delta: timedelta | None = None,
 ) -> str:
     settings = get_settings()
     expire = datetime.now(tz=UTC) + (
         expires_delta if expires_delta else timedelta(minutes=settings.access_token_expire_minutes)
     )
-    to_encode: dict[str, Any] = {"exp": expire, "sub": str(subject), "role": role}
+    to_encode: dict[str, Any] = {
+        "exp": expire,
+        "sub": str(subject),
+        "role": role,
+        "tv": token_version,
+        "jti": str(uuid4()),
+    }
     return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
 

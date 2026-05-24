@@ -1,0 +1,297 @@
+{
+  "started_at": "2026-05-23T14:21:09+00:00",
+  "finished_at": "2026-05-23T14:23:32+00:00",
+  "document_count_per_type": 1,
+  "type_results": [
+    {
+      "document_type": "customer",
+      "label": "Customer",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "supplier",
+      "label": "Supplier / Vendor",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "warehouse",
+      "label": "Warehouse",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "location",
+      "label": "Warehouse Location",
+      "attempted": 1,
+      "succeeded": 0,
+      "failed": 1,
+      "failures": [
+        {
+          "document_type": "location",
+          "index": 1,
+          "error": "Message: \nStacktrace:\n0   chromedriver                        0x000000010286cc40 cxxbridge1$str$ptr + 3221216\n1   chromedriver                        0x0000000102864b1c cxxbridge1$str$ptr + 3188156\n2   chromedriver                        0x00000001023278f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75152\n3   chromedriver                        0x000000010236fff8 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 371860\n4   chromedriver                        0x00000001023af6f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 631696\n5   chromedriver                        0x00000001023659c0 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 329308\n6   chromedriver                        0x000000010282ab70 cxxbridge1$str$ptr + 2950672\n7   chromedriver                        0x000000010282e2c8 cxxbridge1$str$ptr + 2964840\n8   chromedriver                        0x000000010280f8a8 cxxbridge1$str$ptr + 2839368\n9   chromedriver                        0x000000010282eb48 cxxbridge1$str$ptr + 2967016\n10  chromedriver                        0x00000001028003d4 cxxbridge1$str$ptr + 2776692\n11  chromedriver                        0x00000001028537ac cxxbridge1$str$ptr + 3117644\n12  chromedriver                        0x000000010285390c cxxbridge1$str$ptr + 3117996\n13  chromedriver                        0x0000000102864774 cxxbridge1$str$ptr + 3187220\n14  libsystem_pthread.dylib             0x000000019233fc08 _pthread_start + 136\n15  libsystem_pthread.dylib             0x000000019233aba8 thread_start + 8\n",
+          "screenshot_path": "reports/screenshots/location-1.png"
+        }
+      ]
+    },
+    {
+      "document_type": "sales_order",
+      "label": "Sales Order",
+      "attempted": 1,
+      "succeeded": 0,
+      "failed": 1,
+      "failures": [
+        {
+          "document_type": "sales_order",
+          "index": 1,
+          "error": "Message: \nStacktrace:\n0   chromedriver                        0x000000010286cc40 cxxbridge1$str$ptr + 3221216\n1   chromedriver                        0x0000000102864b1c cxxbridge1$str$ptr + 3188156\n2   chromedriver                        0x00000001023278f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75152\n3   chromedriver                        0x000000010236fff8 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 371860\n4   chromedriver                        0x00000001023af6f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 631696\n5   chromedriver                        0x00000001023659c0 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 329308\n6   chromedriver                        0x000000010282ab70 cxxbridge1$str$ptr + 2950672\n7   chromedriver                        0x000000010282e2c8 cxxbridge1$str$ptr + 2964840\n8   chromedriver                        0x000000010280f8a8 cxxbridge1$str$ptr + 2839368\n9   chromedriver                        0x000000010282eb48 cxxbridge1$str$ptr + 2967016\n10  chromedriver                        0x00000001028003d4 cxxbridge1$str$ptr + 2776692\n11  chromedriver                        0x00000001028537ac cxxbridge1$str$ptr + 3117644\n12  chromedriver                        0x000000010285390c cxxbridge1$str$ptr + 3117996\n13  chromedriver                        0x0000000102864774 cxxbridge1$str$ptr + 3187220\n14  libsystem_pthread.dylib             0x000000019233fc08 _pthread_start + 136\n15  libsystem_pthread.dylib             0x000000019233aba8 thread_start + 8\n",
+          "screenshot_path": "reports/screenshots/sales_order-1.png"
+        }
+      ]
+    },
+    {
+      "document_type": "purchase_requisition",
+      "label": "Purchase Requisition",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "purchase_order_procurement",
+      "label": "Procurement PO Record",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "grn",
+      "label": "Goods Receipt (GRN)",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "invoice_matching",
+      "label": "Invoice Matching",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "purchase_order",
+      "label": "Purchase (Quick Receive)",
+      "attempted": 1,
+      "succeeded": 0,
+      "failed": 1,
+      "failures": [
+        {
+          "document_type": "purchase_order",
+          "index": 1,
+          "error": "Message: \nStacktrace:\n0   chromedriver                        0x000000010286cc40 cxxbridge1$str$ptr + 3221216\n1   chromedriver                        0x0000000102864b1c cxxbridge1$str$ptr + 3188156\n2   chromedriver                        0x00000001023278f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75152\n3   chromedriver                        0x000000010236fff8 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 371860\n4   chromedriver                        0x00000001023af6f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 631696\n5   chromedriver                        0x00000001023659c0 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 329308\n6   chromedriver                        0x000000010282ab70 cxxbridge1$str$ptr + 2950672\n7   chromedriver                        0x000000010282e2c8 cxxbridge1$str$ptr + 2964840\n8   chromedriver                        0x000000010280f8a8 cxxbridge1$str$ptr + 2839368\n9   chromedriver                        0x000000010282eb48 cxxbridge1$str$ptr + 2967016\n10  chromedriver                        0x00000001028003d4 cxxbridge1$str$ptr + 2776692\n11  chromedriver                        0x00000001028537ac cxxbridge1$str$ptr + 3117644\n12  chromedriver                        0x000000010285390c cxxbridge1$str$ptr + 3117996\n13  chromedriver                        0x0000000102864774 cxxbridge1$str$ptr + 3187220\n14  libsystem_pthread.dylib             0x000000019233fc08 _pthread_start + 136\n15  libsystem_pthread.dylib             0x000000019233aba8 thread_start + 8\n",
+          "screenshot_path": "reports/screenshots/purchase_order-1.png"
+        }
+      ]
+    },
+    {
+      "document_type": "pos_sale",
+      "label": "POS Checkout",
+      "attempted": 1,
+      "succeeded": 0,
+      "failed": 1,
+      "failures": [
+        {
+          "document_type": "pos_sale",
+          "index": 1,
+          "error": "Message: \nStacktrace:\n0   chromedriver                        0x000000010286cc40 cxxbridge1$str$ptr + 3221216\n1   chromedriver                        0x0000000102864b1c cxxbridge1$str$ptr + 3188156\n2   chromedriver                        0x00000001023278f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75152\n3   chromedriver                        0x000000010236fff8 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 371860\n4   chromedriver                        0x00000001023af6f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 631696\n5   chromedriver                        0x00000001023659c0 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 329308\n6   chromedriver                        0x000000010282ab70 cxxbridge1$str$ptr + 2950672\n7   chromedriver                        0x000000010282e2c8 cxxbridge1$str$ptr + 2964840\n8   chromedriver                        0x000000010280f8a8 cxxbridge1$str$ptr + 2839368\n9   chromedriver                        0x000000010282eb48 cxxbridge1$str$ptr + 2967016\n10  chromedriver                        0x00000001028003d4 cxxbridge1$str$ptr + 2776692\n11  chromedriver                        0x00000001028537ac cxxbridge1$str$ptr + 3117644\n12  chromedriver                        0x000000010285390c cxxbridge1$str$ptr + 3117996\n13  chromedriver                        0x0000000102864774 cxxbridge1$str$ptr + 3187220\n14  libsystem_pthread.dylib             0x000000019233fc08 _pthread_start + 136\n15  libsystem_pthread.dylib             0x000000019233aba8 thread_start + 8\n",
+          "screenshot_path": "reports/screenshots/pos_sale-1.png"
+        }
+      ]
+    },
+    {
+      "document_type": "trading_inventory",
+      "label": "Trading Inventory",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "raw_material_inventory",
+      "label": "Raw Material Inventory",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "finished_goods_inventory",
+      "label": "Finished Goods Inventory",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "bill_of_materials",
+      "label": "Bill of Materials",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "work_order",
+      "label": "Production Order",
+      "attempted": 1,
+      "succeeded": 0,
+      "failed": 1,
+      "failures": [
+        {
+          "document_type": "work_order",
+          "index": 1,
+          "error": "Message: \n",
+          "screenshot_path": "reports/screenshots/work_order-1.png"
+        }
+      ]
+    },
+    {
+      "document_type": "crm_lead",
+      "label": "CRM Lead",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "crm_opportunity",
+      "label": "CRM Opportunity",
+      "attempted": 1,
+      "succeeded": 0,
+      "failed": 1,
+      "failures": [
+        {
+          "document_type": "crm_opportunity",
+          "index": 1,
+          "error": "Message: \n",
+          "screenshot_path": "reports/screenshots/crm_opportunity-1.png"
+        }
+      ]
+    },
+    {
+      "document_type": "crm_campaign",
+      "label": "CRM Marketing Campaign",
+      "attempted": 1,
+      "succeeded": 0,
+      "failed": 1,
+      "failures": [
+        {
+          "document_type": "crm_campaign",
+          "index": 1,
+          "error": "Message: element click intercepted: Element <button type=\"button\" tabindex=\"0\" data-slot=\"button\" class=\"group/button inline-flex shrink-0 items-center justify-center border bg-clip-padding font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&amp;_svg:not([class*='size-'])]:size-3.5\">...</button> is not clickable at point (803, 290). Other element would receive the click: <div>...</div>\n  (Session info: chrome=148.0.7778.179); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementclickinterceptedexception\nStacktrace:\n0   chromedriver                        0x000000010286cc40 cxxbridge1$str$ptr + 3221216\n1   chromedriver                        0x0000000102864b1c cxxbridge1$str$ptr + 3188156\n2   chromedriver                        0x00000001023278f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75152\n3   chromedriver                        0x0000000102375628 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 393924\n4   chromedriver                        0x0000000102373e94 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 387888\n5   chromedriver                        0x0000000102371f40 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 379868\n6   chromedriver                        0x00000001023712e4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 376704\n7   chromedriver                        0x0000000102367448 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 336100\n8   chromedriver                        0x0000000102366ec4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 334688\n9   chromedriver                        0x00000001023af6f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 631696\n10  chromedriver                        0x00000001023659c0 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 329308\n11  chromedriver                        0x000000010282ab70 cxxbridge1$str$ptr + 2950672\n12  chromedriver                        0x000000010282e2c8 cxxbridge1$str$ptr + 2964840\n13  chromedriver                        0x000000010280f8a8 cxxbridge1$str$ptr + 2839368\n14  chromedriver                        0x000000010282eb48 cxxbridge1$str$ptr + 2967016\n15  chromedriver                        0x00000001028003d4 cxxbridge1$str$ptr + 2776692\n16  chromedriver                        0x00000001028537ac cxxbridge1$str$ptr + 3117644\n17  chromedriver                        0x000000010285390c cxxbridge1$str$ptr + 3117996\n18  chromedriver                        0x0000000102864774 cxxbridge1$str$ptr + 3187220\n19  libsystem_pthread.dylib             0x000000019233fc08 _pthread_start + 136\n20  libsystem_pthread.dylib             0x000000019233aba8 thread_start + 8\n",
+          "screenshot_path": "reports/screenshots/crm_campaign-1.png"
+        }
+      ]
+    },
+    {
+      "document_type": "tms_shipment",
+      "label": "TMS Shipment",
+      "attempted": 1,
+      "succeeded": 0,
+      "failed": 1,
+      "failures": [
+        {
+          "document_type": "tms_shipment",
+          "index": 1,
+          "error": "Message: \nStacktrace:\n0   chromedriver                        0x000000010286cc40 cxxbridge1$str$ptr + 3221216\n1   chromedriver                        0x0000000102864b1c cxxbridge1$str$ptr + 3188156\n2   chromedriver                        0x00000001023278f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75152\n3   chromedriver                        0x000000010236fff8 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 371860\n4   chromedriver                        0x00000001023af6f4 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 631696\n5   chromedriver                        0x00000001023659c0 _RNvCsiKAbIcglKMQ_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 329308\n6   chromedriver                        0x000000010282ab70 cxxbridge1$str$ptr + 2950672\n7   chromedriver                        0x000000010282e2c8 cxxbridge1$str$ptr + 2964840\n8   chromedriver                        0x000000010280f8a8 cxxbridge1$str$ptr + 2839368\n9   chromedriver                        0x000000010282eb48 cxxbridge1$str$ptr + 2967016\n10  chromedriver                        0x00000001028003d4 cxxbridge1$str$ptr + 2776692\n11  chromedriver                        0x00000001028537ac cxxbridge1$str$ptr + 3117644\n12  chromedriver                        0x000000010285390c cxxbridge1$str$ptr + 3117996\n13  chromedriver                        0x0000000102864774 cxxbridge1$str$ptr + 3187220\n14  libsystem_pthread.dylib             0x000000019233fc08 _pthread_start + 136\n15  libsystem_pthread.dylib             0x000000019233aba8 thread_start + 8\n",
+          "screenshot_path": "reports/screenshots/tms_shipment-1.png"
+        }
+      ]
+    },
+    {
+      "document_type": "module_warehouse_module",
+      "label": "Module hub (warehouse_module)",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "module_sales_distribution",
+      "label": "Module hub (sales_distribution)",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "module_projects",
+      "label": "Module hub (projects)",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "module_platform",
+      "label": "Module hub (platform)",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "module_finance",
+      "label": "Module records (finance)",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "module_hcm",
+      "label": "Module records (hcm)",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "document_type": "module_scm",
+      "label": "Module records (scm)",
+      "attempted": 1,
+      "succeeded": 1,
+      "failed": 0,
+      "failures": []
+    }
+  ],
+  "known_gaps": [
+    {
+      "document": "Delivery Order",
+      "reason": "No standalone create UI; only /sales?delivery_filter=open list filter."
+    },
+    {
+      "document": "Production Planning / MRP",
+      "reason": "No bulk create UI; MRP runs are API-driven."
+    },
+    {
+      "document": "RAW / FINISHED inventory (bulk seed)",
+      "reason": "Multi-tab inventory form does not submit reliably for non-TRADING types in headless Chrome; seeded via API in system seed."
+    },
+    {
+      "document": "BOM garment SKUs (masters)",
+      "reason": "Manufacturing item master has no create UI; parent SKUs use DB helper before Selenium BOM lines."
+    }
+  ]
+}

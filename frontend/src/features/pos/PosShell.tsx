@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { ContentSheet } from "@/components/ContentSheet"
+import { PageHeader } from "@/components/PageHeader"
 import { CartPanel } from "@/features/pos/CartPanel"
 import { checkoutSale } from "@/features/pos/pos-api"
 import { ProductSearch } from "@/features/pos/ProductSearch"
@@ -49,15 +51,17 @@ export function PosShell() {
 
   return (
     <PosLayout>
-      <header className="mb-4">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Point of sale</h1>
-        <p className="text-sm text-muted-foreground">Search products, build a cart, and checkout.</p>
-      </header>
+      <PageHeader
+        title="Point of sale"
+        description="Search products, build a cart, and checkout."
+      />
 
-      <div className="grid min-h-[32rem] gap-4 lg:grid-cols-[1fr_22rem] xl:grid-cols-[1fr_24rem]">
+      <ContentSheet className="p-0">
+      <div className="grid min-h-[32rem] gap-4 p-4 lg:grid-cols-[1fr_22rem] xl:grid-cols-[1fr_24rem]">
         <ProductSearch />
         <CartPanel onCheckout={handleCheckout} isCheckingOut={checkoutMutation.isPending} />
       </div>
+      </ContentSheet>
 
       <ReceiptDialog sale={lastSale} onClose={() => setLastSale(null)} />
     </PosLayout>

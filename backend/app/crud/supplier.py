@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Any
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,8 +17,71 @@ def _normalize_optional(value: str | None) -> str | None:
     return stripped or None
 
 
+def _jsonb_value(value: Any) -> dict | None:
+    if value is None:
+        return None
+    if hasattr(value, "model_dump"):
+        dumped = value.model_dump(exclude_none=True)
+        return dumped or None
+    if isinstance(value, dict):
+        cleaned = {k: v for k, v in value.items() if v is not None and str(v).strip()}
+        return cleaned or None
+    return None
+
+
 def _purchase_total_expr():
     return func.coalesce(func.sum(PurchaseItem.quantity * PurchaseItem.unit_cost), 0)
+
+
+async def get_supplier_by_vendor_code(
+    db: AsyncSession,
+    vendor_code: str,
+    *,
+    exclude_id: int | None = None,
+) -> Supplier | None:
+    stmt = select(Supplier).where(Supplier.vendor_code == vendor_code.strip().upper())
+    if exclude_id is not None:
+        stmt = stmt.where(Supplier.id != exclude_id)
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+def _apply_supplier_fields(supplier: Supplier, data: dict[str, Any]) -> None:
+    if "name" in data and data["name"] is not None:
+        data["name"] = data["name"].strip()
+    if "vendor_code" in data and data["vendor_code"] is not None:
+        data["vendor_code"] = data["vendor_code"].strip().upper()
+    if "phone" in data:
+        data["phone"] = _normalize_optional(data["phone"])
+    if "email" in data:
+        email = data["email"]
+        data["email"] = _normalize_optional(str(email) if email else None)
+    for key in (
+        "legal_name",
+        "dba",
+        "address_line1",
+        "address_line2",
+        "city",
+        "state",
+        "postal_code",
+        "country",
+        "website",
+        "tax_id",
+        "payment_terms",
+        "incoterms",
+        "vendor_category",
+        "vendor_type",
+        "approval_status",
+        "pricing_currency",
+    ):
+        if key in data:
+            data[key] = _normalize_optional(data.get(key))
+    if "bank_details" in data:
+        data["bank_details"] = _jsonb_value(data["bank_details"])
+    if "documents" in data:
+        data["documents"] = _jsonb_value(data["documents"])
+    for key, value in data.items():
+        setattr(supplier, key, value)
 
 
 async def list_suppliers(
@@ -52,9 +116,12 @@ async def list_suppliers(
     if search:
         pattern = f"%{search.strip()}%"
         filter_expr = or_(
+            Supplier.vendor_code.ilike(pattern),
             Supplier.name.ilike(pattern),
+            Supplier.legal_name.ilike(pattern),
             Supplier.phone.ilike(pattern),
             Supplier.email.ilike(pattern),
+            Supplier.vendor_category.ilike(pattern),
         )
         stmt = stmt.where(filter_expr)
         count_stmt = count_stmt.where(filter_expr)
@@ -115,12 +182,15 @@ async def get_supplier_with_recent_purchases(
 
 
 async def create_supplier(db: AsyncSession, payload: SupplierCreate) -> Supplier:
-    supplier = Supplier(
-        name=payload.name.strip(),
-        phone=_normalize_optional(payload.phone),
-        email=_normalize_optional(str(payload.email) if payload.email else None),
-        notes=_normalize_optional(payload.notes),
-    )
+    vendor_code = payload.vendor_code.strip().upper()
+    existing = await get_supplier_by_vendor_code(db, vendor_code)
+    if existing is not None:
+        raise ValueError(f"Vendor code {vendor_code} already exists")
+
+    data = payload.model_dump()
+    data["vendor_code"] = vendor_code
+    supplier = Supplier()
+    _apply_supplier_fields(supplier, data)
     db.add(supplier)
     await db.commit()
     await db.refresh(supplier)
@@ -133,17 +203,13 @@ async def update_supplier(
     payload: SupplierUpdate,
 ) -> Supplier:
     data = payload.model_dump(exclude_unset=True)
-    if "name" in data and data["name"] is not None:
-        data["name"] = data["name"].strip()
-    if "phone" in data:
-        data["phone"] = _normalize_optional(data["phone"])
-    if "email" in data:
-        email = data["email"]
-        data["email"] = _normalize_optional(str(email) if email else None)
-    if "notes" in data:
-        data["notes"] = _normalize_optional(data["notes"])
-    for key, value in data.items():
-        setattr(supplier, key, value)
+    if "vendor_code" in data and data["vendor_code"] is not None:
+        vendor_code = data["vendor_code"].strip().upper()
+        existing = await get_supplier_by_vendor_code(db, vendor_code, exclude_id=supplier.id)
+        if existing is not None:
+            raise ValueError(f"Vendor code {vendor_code} already exists")
+        data["vendor_code"] = vendor_code
+    _apply_supplier_fields(supplier, data)
     await db.commit()
     await db.refresh(supplier)
     return supplier

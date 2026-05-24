@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 
 class Token(BaseModel):
@@ -12,5 +12,6 @@ class TokenPayload(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    # Plain str so dev seed users (e.g. rbac-01@seed.local) can authenticate.
+    email: str = Field(min_length=3, max_length=255)
     password: str = Field(min_length=1)

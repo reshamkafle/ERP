@@ -8,7 +8,7 @@ import type {
 
 export type PurchaseCreatePayload = {
   supplier_id: number
-  items: { product_id: number; quantity: number; unit_cost: number }[]
+  items: { product_id: number; quantity: number }[]
 }
 
 export async function fetchPurchaseProducts(params: {

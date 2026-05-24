@@ -10,13 +10,12 @@ from app.core.bootstrap import seed_admin_user
 from app.core.database import AsyncSessionLocal, engine
 from app.models.user import User, UserRole
 from app.testing.seed_agent_demo import ensure_procurement_run_enum_sync, seed_agent_demo_data
+from app.testing.seed_garment_planning import seed_garment_planning_demo
 
 ensure_procurement_run_enum_sync()
 
 _postgres_checked: bool | None = None
 _postgres_available: bool = False
-
-
 async def _check_postgres_once() -> bool:
     global _postgres_checked, _postgres_available
     if _postgres_checked is not None:
@@ -34,25 +33,29 @@ async def _check_postgres_once() -> bool:
 
 
 @pytest.fixture(autouse=True)
-async def _dispose_engine_pool_after_test(request: pytest.FixtureRequest) -> None:
+async def _dispose_engine_pool_after_test() -> None:
     """Avoid asyncpg 'attached to a different loop' across pytest-asyncio tests."""
     yield
-    if "integration" in request.keywords:
-        await engine.dispose()
+    await engine.dispose()
 
 
 @pytest.fixture
 async def db_session() -> AsyncSession:
     if not await _check_postgres_once():
         pytest.skip("PostgreSQL not available (start docker compose up -d postgres)")
+    from app.core.database import init_db
+
+    await init_db()
     async with AsyncSessionLocal() as session:
         yield session
+    await engine.dispose()
 
 
 @pytest.fixture
 async def seeded_db(db_session: AsyncSession) -> AsyncSession:
     await seed_admin_user(db_session)
     await seed_agent_demo_data(db_session)
+    await seed_garment_planning_demo(db_session)
     await db_session.commit()
     return db_session
 

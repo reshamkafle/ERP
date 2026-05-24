@@ -65,7 +65,11 @@ async def seed_agent_demo_data(db: AsyncSession) -> dict[str, int | str]:
         await db.execute(select(Supplier).where(Supplier.name == DEMO_SUPPLIER))
     ).scalar_one_or_none()
     if sup_row is None:
-        sup_row = Supplier(name=DEMO_SUPPLIER, email="agent-demo@example.com")
+        sup_row = Supplier(
+            vendor_code="VND-AGENT-DEMO",
+            name=DEMO_SUPPLIER,
+            email="agent-demo@example.com",
+        )
         db.add(sup_row)
         await db.flush()
 
@@ -140,7 +144,10 @@ async def seed_agent_demo_data(db: AsyncSession) -> dict[str, int | str]:
 
     now = datetime.now(UTC)
     for day_offset in (1, 3, 7):
-        sale = Sale(created_at=now - timedelta(days=day_offset))
+        sale = Sale(
+            order_number=f"SEED-DEMO-{day_offset}",
+            created_at=now - timedelta(days=day_offset),
+        )
         db.add(sale)
         await db.flush()
         db.add(
@@ -148,6 +155,7 @@ async def seed_agent_demo_data(db: AsyncSession) -> dict[str, int | str]:
                 sale_id=sale.id,
                 product_id=anchor.id,
                 quantity=3,
+                unit_price=anchor.price,
                 price_at_sale=anchor.price,
             ),
         )
@@ -156,6 +164,7 @@ async def seed_agent_demo_data(db: AsyncSession) -> dict[str, int | str]:
                 sale_id=sale.id,
                 product_id=related.id,
                 quantity=2,
+                unit_price=related.price,
                 price_at_sale=related.price,
             ),
         )
@@ -164,6 +173,7 @@ async def seed_agent_demo_data(db: AsyncSession) -> dict[str, int | str]:
                 sale_id=sale.id,
                 product_id=fast.id,
                 quantity=5,
+                unit_price=fast.price,
                 price_at_sale=fast.price,
             ),
         )

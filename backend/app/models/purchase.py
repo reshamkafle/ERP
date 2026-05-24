@@ -4,12 +4,12 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Numeric, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Numeric, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
-from app.models.enums import PurchaseStatus
+from app.models.enums import DocumentPaymentStatus, PurchaseStatus
 
 
 class Purchase(Base):
@@ -31,6 +31,14 @@ class Purchase(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    total: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False, default=0)
+    amount_paid: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False, default=0)
+    payment_status: Mapped[DocumentPaymentStatus] = mapped_column(
+        Enum(DocumentPaymentStatus, name="documentpaymentstatus", create_constraint=False),
+        nullable=False,
+        default=DocumentPaymentStatus.UNPAID,
+    )
+    currency_code: Mapped[str] = mapped_column(String(3), nullable=False, default="USD")
 
     supplier: Mapped["Supplier | None"] = relationship(back_populates="purchases")
     created_by_user: Mapped["User | None"] = relationship(back_populates="purchases")
@@ -50,6 +58,8 @@ class PurchaseItem(Base):
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_cost: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    rolls_expected: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    receipt_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
     purchase: Mapped["Purchase"] = relationship(back_populates="items")
     product: Mapped["Product"] = relationship(back_populates="purchase_items")

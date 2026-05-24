@@ -5,9 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.crud import payment as payment_crud
 from app.crud import purchase as purchase_crud
-from app.dependencies.auth import require_roles
-from app.models.user import User, UserRole
+from app.schemas.payments import OpenBalanceRead
+from app.dependencies.auth import require_permission
+from app.models.user import User
 from app.schemas.purchase import (
     PurchaseCreate,
     PurchaseItemRead,
@@ -20,7 +22,9 @@ from app.schemas.purchase import (
 
 router = APIRouter(prefix="/purchases")
 
-PurchaseRoles = require_roles(UserRole.ADMIN, UserRole.MANAGER)
+PurchaseReadPerm = require_permission("warehouse.purchases.read")
+PurchaseWritePerm = require_permission("warehouse.purchases.write")
+PurchaseDeletePerm = require_permission("warehouse.purchases.delete")
 
 
 def _agent_summary(meta: dict | None) -> str | None:
@@ -35,7 +39,7 @@ def _agent_summary(meta: dict | None) -> str | None:
 @router.get("/products", response_model=PurchaseProductListResponse)
 async def list_purchase_products(
     db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(PurchaseRoles)],
+    _: Annotated[User, Depends(PurchaseReadPerm)],
     search: str | None = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=50),
@@ -55,7 +59,7 @@ async def list_purchase_products(
 @router.get("", response_model=PurchaseListResponse)
 async def list_purchases(
     db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(PurchaseRoles)],
+    _: Annotated[User, Depends(PurchaseReadPerm)],
     supplier_id: int | None = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
@@ -89,7 +93,7 @@ async def list_purchases(
 async def create_purchase(
     body: PurchaseCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    user: Annotated[User, Depends(PurchaseRoles)],
+    user: Annotated[User, Depends(PurchaseWritePerm)],
 ) -> PurchaseRead:
     purchase = await purchase_crud.create_purchase(db, body, created_by_id=user.id)
     return _purchase_to_read(purchase)
@@ -99,7 +103,7 @@ async def create_purchase(
 async def confirm_purchase(
     purchase_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    user: Annotated[User, Depends(PurchaseRoles)],
+    user: Annotated[User, Depends(PurchaseWritePerm)],
 ) -> PurchaseRead:
     purchase = await purchase_crud.confirm_draft_purchase(
         db,
@@ -113,16 +117,37 @@ async def confirm_purchase(
 async def discard_draft_purchase(
     purchase_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(PurchaseRoles)],
+    _: Annotated[User, Depends(PurchaseDeletePerm)],
 ) -> None:
     await purchase_crud.discard_draft_purchase(db, purchase_id)
+
+
+@router.get("/{purchase_id}/open-balance", response_model=OpenBalanceRead)
+async def get_purchase_open_balance(
+    purchase_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[User, Depends(PurchaseReadPerm)],
+) -> OpenBalanceRead:
+    purchase = await purchase_crud.get_purchase(db, purchase_id)
+    if purchase is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Purchase not found")
+    total = purchase.total or sum(item.quantity * item.unit_cost for item in purchase.items)
+    paid = purchase.amount_paid or Decimal("0")
+    return OpenBalanceRead(
+        document_id=purchase.id,
+        total=total,
+        amount_paid=paid,
+        open_balance=payment_crud.purchase_open_balance(purchase),
+        payment_status=purchase.payment_status.value,
+        currency_code=purchase.currency_code,
+    )
 
 
 @router.get("/{purchase_id}", response_model=PurchaseRead)
 async def get_purchase(
     purchase_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(PurchaseRoles)],
+    _: Annotated[User, Depends(PurchaseReadPerm)],
 ) -> PurchaseRead:
     purchase = await purchase_crud.get_purchase(db, purchase_id)
     if purchase is None:

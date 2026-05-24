@@ -13,6 +13,7 @@ class UserPublic(BaseModel):
 
 
 class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+    """Session token is set only via HttpOnly cookie; not returned in JSON."""
+
     user: UserPublic
+    permissions: list[str] = []

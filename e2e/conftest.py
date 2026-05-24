@@ -27,6 +27,7 @@ from config import (  # noqa: E402
     HEADLESS,
     IMPLICIT_WAIT_SEC,
 )
+from helpers.seed_masters import FlowSeedMasters, seed_flow_masters  # noqa: E402
 from pages.layout import AppLayout  # noqa: E402
 from pages.login import LoginPage  # noqa: E402
 
@@ -93,25 +94,24 @@ def app_layout(driver: WebDriver, base_url: str, wait_timeout: float) -> AppLayo
     return AppLayout(driver, base_url, wait_timeout)
 
 
-@pytest.fixture
-def admin_token(require_stack: None) -> str:
-    with httpx.Client(base_url=API_URL, timeout=10.0) as client:
-        res = client.post(
-            "/api/v1/auth/login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
-        )
-        res.raise_for_status()
-        return res.json()["access_token"]
+def _login_api_client(timeout: float = 15.0) -> httpx.Client:
+    """Authenticate via HttpOnly cookie (no token in JSON body)."""
+    client = httpx.Client(base_url=API_URL, timeout=timeout)
+    res = client.post(
+        "/api/v1/auth/login",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+    )
+    res.raise_for_status()
+    return client
 
 
 @pytest.fixture
-def api_client(admin_token: str) -> Generator[httpx.Client, None, None]:
-    with httpx.Client(
-        base_url=API_URL,
-        timeout=15.0,
-        headers={"Authorization": f"Bearer {admin_token}"},
-    ) as client:
+def api_client(require_stack: None) -> Generator[httpx.Client, None, None]:
+    client = _login_api_client()
+    try:
         yield client
+    finally:
+        client.close()
 
 
 @pytest.fixture
@@ -138,3 +138,16 @@ def logged_in_admin(login_page: LoginPage, app_layout: AppLayout) -> AppLayout:
     login_page.login(ADMIN_EMAIL, ADMIN_PASSWORD)
     app_layout.wait_authenticated()
     return app_layout
+
+
+@pytest.fixture(scope="session")
+def flow_seed_masters(require_stack: None) -> FlowSeedMasters:
+    """Customer, supplier, products, and BOM parent SKUs for ERPFlow seed tests."""
+    import os
+
+    bom_count = int(os.getenv("E2E_DOC_COUNT", "20"))
+    client = _login_api_client(timeout=30.0)
+    try:
+        return seed_flow_masters(client, bom_parent_count=bom_count)
+    finally:
+        client.close()

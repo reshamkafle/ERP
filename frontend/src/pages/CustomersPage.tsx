@@ -1,25 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
-import { Link, Navigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { toast } from "sonner"
 
+import { PosOnlyRedirect } from "@/components/PosOnlyRedirect"
+import { ContentSheet } from "@/components/ContentSheet"
+import { PageHeader } from "@/components/PageHeader"
 import { Button } from "@/components/ui/button"
+import { ControlPanel } from "@/components/ui/control-panel"
 import { Input } from "@/components/ui/input"
 import { CustomerFormDialog } from "@/features/customers/CustomerFormDialog"
 import { deleteCustomer, fetchCustomers } from "@/features/customers/customers-api"
 import { useAuth } from "@/context/AuthContext"
+import { canDeleteCustomers } from "@/lib/permissions"
 import type { Customer } from "@/types/customer"
 
 export function CustomersPage() {
-  const { user } = useAuth()
+  const { permissions } = useAuth()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Customer | null>(null)
-
-  if (user?.role === "CASHIER") {
-    return <Navigate to="/pos" replace />
-  }
 
   const listQuery = useQuery({
     queryKey: ["customers", "list", search],
@@ -41,41 +42,46 @@ export function CustomersPage() {
   })
 
   const customers = listQuery.data?.items ?? []
-  const isAdmin = user?.role === "ADMIN"
+  const canDelete = canDeleteCustomers(permissions)
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Customers</h1>
-          <p className="text-sm text-muted-foreground">
-            Basic CRM — contact details, notes, and purchase history.
-          </p>
-        </div>
-        <Button
-          type="button"
-          onClick={() => {
-            setEditing(null)
-            setDialogOpen(true)
-          }}
-        >
-          Add customer
-        </Button>
-      </div>
+    <PosOnlyRedirect>
+    <div className="space-y-4">
+      <PageHeader
+        title="Customers"
+        description="Customer master data — profiles, credit, tax, and 360° view."
+        actions={
+          <Button
+            type="button"
+            onClick={() => {
+              setEditing(null)
+              setDialogOpen(true)
+            }}
+          >
+            Add customer
+          </Button>
+        }
+      />
 
-      <div className="rounded-xl border border-border bg-card p-4">
+      <ControlPanel>
         <Input
+          className="max-w-md"
           placeholder="Search by name, phone, or email…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-      </div>
+      </ControlPanel>
 
-      <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full min-w-[640px] text-left text-sm">
+      <ContentSheet className="p-0 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[800px] text-left text-sm">
           <thead className="border-b border-border bg-muted/50 text-xs uppercase text-muted-foreground">
             <tr>
               <th className="px-3 py-2 font-medium">Name</th>
+              <th className="px-3 py-2 font-medium">Code</th>
+              <th className="px-3 py-2 font-medium">Status</th>
+              <th className="px-3 py-2 font-medium">Segment</th>
+              <th className="px-3 py-2 font-medium">Group</th>
               <th className="px-3 py-2 font-medium">Phone</th>
               <th className="px-3 py-2 font-medium">Email</th>
               <th className="px-3 py-2 font-medium text-right">Actions</th>
@@ -84,13 +90,13 @@ export function CustomersPage() {
           <tbody>
             {listQuery.isLoading ? (
               <tr>
-                <td colSpan={4} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">
                   Loading customers…
                 </td>
               </tr>
             ) : customers.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">
                   No customers found. Add your first customer.
                 </td>
               </tr>
@@ -100,11 +106,17 @@ export function CustomersPage() {
                   <td className="px-3 py-2">
                     <Link
                       to={`/customers/${customer.id}`}
-                      className="font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+                      className="font-medium text-primary hover:underline"
                     >
                       {customer.name}
                     </Link>
                   </td>
+                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+                    {customer.customer_code ?? "—"}
+                  </td>
+                  <td className="px-3 py-2 text-muted-foreground">{customer.status ?? "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{customer.segment ?? "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{customer.customer_group ?? "—"}</td>
                   <td className="px-3 py-2 text-muted-foreground">{customer.phone ?? "—"}</td>
                   <td className="px-3 py-2 text-muted-foreground">{customer.email ?? "—"}</td>
                   <td className="px-3 py-2 text-right">
@@ -119,7 +131,7 @@ export function CustomersPage() {
                     >
                       Edit
                     </Button>
-                    {isAdmin ? (
+                    {canDelete ? (
                       <Button
                         type="button"
                         variant="destructive"
@@ -141,6 +153,7 @@ export function CustomersPage() {
           </tbody>
         </table>
       </div>
+      </ContentSheet>
 
       {listQuery.isError ? (
         <p className="text-sm text-destructive">Could not load customers. Try again shortly.</p>
@@ -155,5 +168,6 @@ export function CustomersPage() {
         }}
       />
     </div>
+    </PosOnlyRedirect>
   )
 }

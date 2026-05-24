@@ -110,11 +110,6 @@ export function PurchaseFormCard() {
       return
     }
     for (const line of lines) {
-      const cost = Number.parseFloat(line.unit_cost)
-      if (!Number.isFinite(cost) || cost < 0) {
-        toast.error(`Invalid unit cost for ${line.sku}`)
-        return
-      }
       if (line.quantity < 1) {
         toast.error(`Invalid quantity for ${line.sku}`)
         return
@@ -125,7 +120,6 @@ export function PurchaseFormCard() {
       items: lines.map((l) => ({
         product_id: l.product_id,
         quantity: l.quantity,
-        unit_cost: Number.parseFloat(l.unit_cost),
       })),
     })
   }
@@ -208,7 +202,7 @@ export function PurchaseFormCard() {
 
       <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-lg font-semibold tabular-nums">
-          Total: <span className="text-emerald-600 dark:text-emerald-400">{formatMoney(total)}</span>
+          Total: <span className="text-primary">{formatMoney(total)}</span>
         </p>
         <Button
           type="button"
@@ -268,15 +262,8 @@ function LinesTable({
                     }
                   />
                 </td>
-                <td className="px-3 py-2">
-                  <Input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    className="w-28"
-                    value={line.unit_cost}
-                    onChange={(e) => onUpdate(line.product_id, { unit_cost: e.target.value })}
-                  />
+                <td className="px-3 py-2 tabular-nums text-muted-foreground">
+                  {formatMoney(line.unit_cost)}
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums font-medium">
                   {formatMoney(lineTotal)}

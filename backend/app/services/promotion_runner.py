@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from decimal import Decimal
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,19 +16,17 @@ from app.models.product import Product
 from app.models.promotion_run import PromotionRun
 from app.schemas.promotion import PromotionConfirmBody, PromotionRunCreateBody
 from app.services.promotion_signals import fetch_promotion_signals
+from app.services.promotion_validation import validate_project_margins
 
 logger = logging.getLogger(__name__)
 
 
-def _collect_product_ids(projects: list[dict[str, Any]]) -> set[int]:
+def _collect_product_ids(projects: list) -> set[int]:
     ids: set[int] = set()
     for proj in projects:
-        anchor = proj.get("anchor") or {}
-        if anchor.get("product_id") is not None:
-            ids.add(int(anchor["product_id"]))
-        for rel in proj.get("related_items") or []:
-            if isinstance(rel, dict) and rel.get("product_id") is not None:
-                ids.add(int(rel["product_id"]))
+        ids.add(int(proj.anchor.product_id))
+        for rel in proj.related_items:
+            ids.add(int(rel.product_id))
     return ids
 
 
@@ -128,15 +128,24 @@ async def confirm_promotion_run(
         msg = "No product ids in projects payload"
         raise ValueError(msg)
 
-    result = await db.execute(select(Product.id).where(Product.id.in_(ids)))
-    existing = result.scalars().all()
-    found = {int(x) for x in existing}
+    result = await db.execute(
+        select(Product.id, Product.price, Product.cost_price).where(Product.id.in_(ids)),
+    )
+    rows = result.all()
+    found = {int(row[0]) for row in rows}
     missing = ids - found
     if missing:
         msg = f"Unknown product ids: {sorted(missing)[:20]}"
         raise ValueError(msg)
 
-    run.approved_json = {"projects": projects}
+    product_prices = {
+        int(row[0]): (Decimal(str(row[1] or 0)), Decimal(str(row[2] or 0))) for row in rows
+    }
+    project_dicts = [proj.model_dump() for proj in projects]
+    for proj in project_dicts:
+        validate_project_margins(proj, product_prices=product_prices)
+
+    run.approved_json = {"projects": project_dicts}
     run.status = PromotionRunStatus.APPROVED
     await db.commit()
     await db.refresh(run)

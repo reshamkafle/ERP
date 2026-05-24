@@ -8,9 +8,8 @@ export interface AuthUser {
 }
 
 export interface LoginResponse {
-  access_token: string
-  token_type: string
   user: AuthUser
+  permissions?: string[]
 }
 
 export interface DashboardSummary {

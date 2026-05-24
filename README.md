@@ -6,7 +6,7 @@
 
 **Tech Stack**  
 **Backend**: FastAPI + Async SQLAlchemy + PostgreSQL  
-**Frontend**: Vite + React 19 + TypeScript + Tailwind CSS + shadcn/ui  
+**Frontend**: Vite + React 19 + TypeScript + Tailwind CSS + shadcn/ui (Odoo-inspired shell: purple sidebar, teal accents, gray workspace)  
 **Auth**: JWT with bcrypt password hashing (Python 3.12+ compatible)
 
 ---
@@ -117,13 +117,40 @@ npm install
 npm run dev
 ```
 
-Frontend proxies /api to the backend. Default admin: admin@example.com / changeme123
+Frontend proxies /api to the backend. For local dev only, set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env` (see `.env.example`).
 Health Check: GET http://localhost:8000/api/v1/health
 
-###E2E Tests (Selenium + Chrome)
+### RBAC test users (50 roles / full permission coverage)
+
+After the backend has started once (permissions and system roles are seeded), create 50 dev users with distinct roles—including document read/write/delete and every other permission code:
+
+```bash
+cd backend
+python scripts/seed_rbac_users.py
+```
+
+Uses `SEED_USER_PASSWORD` from `backend/.env` (default `SeedUser123!`). Logins are `rbac-01-super-admin-a@seed.local` through `rbac-50-inventory-write@seed.local`. A credentials table is written to `backend/seed-output/rbac-users.md` (gitignored). Re-running the script is idempotent (skips existing emails).
+
+### E2E Tests (Selenium + Chrome)
 ```bash
 chmod +x scripts/run-e2e.sh
 ./scripts/run-e2e.sh
+```
+
+### Whole-system data seed (Selenium WebDriver)
+Populate customers, suppliers, inventory, sales, procurement, CRM, TMS, module hubs, and more through the live UI (Chrome). Requires postgres, backend, and frontend running.
+
+```bash
+chmod +x scripts/run-system-seed.sh
+./scripts/run-system-seed.sh
+```
+
+Optional: `E2E_SEED_COUNT=20` (records per entity type; default `10`). Reports are written to `e2e/reports/system_seed_report.{json,md}` with failure screenshots under `e2e/reports/screenshots/`.
+
+### UI design reference (Odoo demo4)
+Odoo-style layout tokens and an optional Selenium audit script live in [docs/ODOO-UI-REFERENCE.md](docs/ODOO-UI-REFERENCE.md). Re-capture demo metrics with:
+```bash
+python e2e/scripts/audit_odoo_ui.py
 ```
 
 ###📖 Project Philosophy
@@ -136,16 +163,52 @@ Distributed under the MIT License. See LICENSE for more information.
 
 ---
 
+## 📄 ERP document journey
+
+Operational and trade documents for manufacturing and export are catalogued in **[docs/ERP-DOCUMENT-JOURNEY.md](docs/ERP-DOCUMENT-JOURNEY.md)** and implemented in the app under **Documents** (`/documents`) with API `GET/POST /api/v1/erp-documents`. All 23 journey steps are stored in PostgreSQL (`erp_documents`) with blank `content` JSON until templates are defined.
+
+---
+
+## ✅ Phase 1 — Implemented
+
+- **Multi-Level BOM** (Fabrics / Trims / Consumption / Wastage) — `/bom` with structure tree, material explosion, fabric & trim summaries, and BOM editor ([docs/documents/bill-of-materials.md](docs/documents/bill-of-materials.md))
+- **Fabric & Raw Material Tracking** (Roll/Lot, Barcode/RFID) — `/inventory/fabric-rolls` with decimal roll quantities, scan API, GRN receipt, production issue, and traceability ([docs/fabric-roll-lot-tracking.md](docs/fabric-roll-lot-tracking.md))
+
+---
+
 ## 🔮 Upcoming Features
 
-### Phase 2: Core Enhancements (Build Next – 3-6 Months)
+### Phase 2: Core Enhancements ✅ (Completed)
 
-- Style-Color-Size (SKU) Matrix + Variant Management
-- Multi-Level BOM (Fabrics/Trims/Consumption/Wastage)
-- Advanced Production Planning & Scheduling (Line balancing, CMT, Cut orders)
-- Fabric & Raw Material Tracking (Roll/Lot, Barcode/RFID)
-- Enhanced WMS
-- Basic TMS Lite
+![ERP Module Demo](output/promo_erp_demo.gif)
+
+#### Original scope
+
+- ✅ Style-Color-Size (SKU) Matrix + Variant Management — see [docs/inventory-variant-matrix.md](docs/inventory-variant-matrix.md)
+- ✅ Multi-Level BOM (Fabrics/Trims/Consumption/Wastage) — see [docs/documents/bill-of-materials.md](docs/documents/bill-of-materials.md)
+- ✅ Advanced Production Planning & Scheduling (Line balancing, CMT, Cut orders) — see [docs/garment-production-planning.md](docs/garment-production-planning.md)
+- ✅ Fabric & Raw Material Tracking (Roll/Lot, Barcode/RFID) — see [docs/fabric-roll-lot-tracking.md](docs/fabric-roll-lot-tracking.md)
+- ✅ Enhanced WMS
+- ✅ Basic TMS Lite
+
+#### Bonus — Featured Modules
+
+- ✅ **Dashboards** — Executive dashboards with real-time analytics
+- ✅ **Finance**
+- ✅ **HCM / HR**
+- ✅ **Procurement & Supplier Management**
+- ✅ **Purchase & Warehouse Management**
+- ✅ **Inventory & Variant Management**
+- ✅ **Fabric Rolls Tracking**
+- ✅ **Bill of Materials (BOM)**
+- ✅ **Manufacturing & Production Planning**
+- ✅ **SCM & TMS**
+- ✅ **Sales & Distribution**
+- ✅ **CRM & Customer Management**
+- ✅ **POS, Promotions & Sales Order Processing**
+- ✅ **Projects**
+- ✅ **Access Control & User Management**
+- ✅ **Advanced Reports & Analytics** across all modules
 
 ### Phase 3: Operations Optimization & Integration (Next 6-9 Months)
 

@@ -9,9 +9,10 @@ from typing import Any, TypedDict
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.core.config import get_settings
+from app.core.llm_sanitize import sanitize_llm_record, sanitize_llm_text
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,14 @@ logger = logging.getLogger(__name__)
 class LineSuggestion(BaseModel):
     product_id: int = Field(ge=1)
     suggested_qty: int = Field(ge=1, le=10_000)
-    rationale: str = ""
+    rationale: str = Field(default="", max_length=500)
+
+    @field_validator("rationale", mode="before")
+    @classmethod
+    def sanitize_rationale(cls, value: object) -> str:
+        if value is None:
+            return ""
+        return sanitize_llm_text(str(value), max_length=500)
 
 
 class SpecialistLines(BaseModel):
@@ -58,12 +66,19 @@ def _product_lookup(signals: dict[str, Any]) -> dict[int, dict[str, Any]]:
 
 
 def _llm() -> ChatOpenAI | None:
+    from app.core.llm_url import validate_llm_base_url
+
     settings = get_settings()
     if not settings.llm_base_url or not settings.llm_model:
         return None
+    try:
+        base_url = validate_llm_base_url(settings.llm_base_url)
+    except ValueError as exc:
+        logger.warning("Invalid LLM_BASE_URL: %s", exc)
+        return None
     return ChatOpenAI(
         model=settings.llm_model,
-        base_url=settings.llm_base_url.rstrip("/"),
+        base_url=base_url,
         api_key=settings.llm_api_key or "EMPTY",
         temperature=0.2,
     )
@@ -82,36 +97,45 @@ def _serialize_signals(signals_obj: Any) -> dict[str, Any]:
         raise TypeError("signals must be ProcurementSignals")
 
     def td(t: ThresholdProduct) -> dict[str, Any]:
-        return {
-            "product_id": t.product_id,
-            "sku": t.sku,
-            "name": t.name,
-            "stock": t.stock,
-            "low_stock_threshold": t.low_stock_threshold,
-            "cost_price": str(t.cost_price),
-            "default_supplier_id": t.default_supplier_id,
-        }
+        return sanitize_llm_record(
+            {
+                "product_id": t.product_id,
+                "sku": t.sku,
+                "name": t.name,
+                "stock": t.stock,
+                "low_stock_threshold": t.low_stock_threshold,
+                "cost_price": str(t.cost_price),
+                "default_supplier_id": t.default_supplier_id,
+            },
+            ("sku", "name"),
+        )
 
     def vd(v: VelocityProduct) -> dict[str, Any]:
-        return {
-            "product_id": v.product_id,
-            "sku": v.sku,
-            "name": v.name,
-            "quantity_sold": v.quantity_sold,
-            "stock": v.stock,
-            "cost_price": str(v.cost_price),
-            "default_supplier_id": v.default_supplier_id,
-        }
+        return sanitize_llm_record(
+            {
+                "product_id": v.product_id,
+                "sku": v.sku,
+                "name": v.name,
+                "quantity_sold": v.quantity_sold,
+                "stock": v.stock,
+                "cost_price": str(v.cost_price),
+                "default_supplier_id": v.default_supplier_id,
+            },
+            ("sku", "name"),
+        )
 
     def pd(p: PromotionProduct) -> dict[str, Any]:
-        return {
-            "product_id": p.product_id,
-            "sku": p.sku,
-            "name": p.name,
-            "stock": p.stock,
-            "cost_price": str(p.cost_price),
-            "default_supplier_id": p.default_supplier_id,
-        }
+        return sanitize_llm_record(
+            {
+                "product_id": p.product_id,
+                "sku": p.sku,
+                "name": p.name,
+                "stock": p.stock,
+                "cost_price": str(p.cost_price),
+                "default_supplier_id": p.default_supplier_id,
+            },
+            ("sku", "name"),
+        )
 
     return {
         "threshold_candidates": [td(t) for t in signals_obj.threshold_candidates],

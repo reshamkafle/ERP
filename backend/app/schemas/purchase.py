@@ -23,7 +23,8 @@ class PurchaseProductListResponse(BaseModel):
 class PurchaseItemLineCreate(BaseModel):
     product_id: int = Field(ge=1)
     quantity: int = Field(ge=1)
-    unit_cost: Decimal = Field(ge=0)
+    # Ignored by API — unit cost is always taken from product.cost_price (security).
+    unit_cost: Decimal | None = Field(default=None, ge=0)
 
 
 class PurchaseCreate(BaseModel):

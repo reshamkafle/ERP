@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.crud import supplier as supplier_crud
-from app.dependencies.auth import require_roles
-from app.models.user import User, UserRole
+from app.dependencies.auth import require_permission
+from app.models.user import User
 from app.schemas.supplier import (
     SupplierCreate,
     SupplierDetailRead,
@@ -19,7 +19,12 @@ from app.schemas.supplier import (
 
 router = APIRouter(prefix="/suppliers")
 
-SupplierManageRoles = require_roles(UserRole.ADMIN, UserRole.MANAGER)
+SupplierReadRoles = require_permission("warehouse.suppliers.read")
+SupplierManageRoles = require_permission("warehouse.suppliers.write")
+
+
+def _supplier_read(supplier) -> SupplierRead:
+    return SupplierRead.model_validate(supplier)
 
 
 @router.get("", response_model=SupplierListResponse)
@@ -39,11 +44,7 @@ async def list_suppliers(
     return SupplierListResponse(
         items=[
             SupplierListItem(
-                id=supplier.id,
-                name=supplier.name,
-                phone=supplier.phone,
-                email=supplier.email,
-                notes=supplier.notes,
+                **_supplier_read(supplier).model_dump(),
                 total_spent=total_spent,
                 purchase_count=purchase_count,
             )
@@ -65,11 +66,7 @@ async def get_supplier(
     if supplier is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Supplier not found")
     return SupplierDetailRead(
-        id=supplier.id,
-        name=supplier.name,
-        phone=supplier.phone,
-        email=supplier.email,
-        notes=supplier.notes,
+        **_supplier_read(supplier).model_dump(),
         total_spent=total_spent,
         purchase_count=purchase_count,
         recent_purchases=[
@@ -90,8 +87,11 @@ async def create_supplier(
     db: Annotated[AsyncSession, Depends(get_db)],
     _: Annotated[User, Depends(SupplierManageRoles)],
 ) -> SupplierRead:
-    supplier = await supplier_crud.create_supplier(db, body)
-    return SupplierRead.model_validate(supplier)
+    try:
+        supplier = await supplier_crud.create_supplier(db, body)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    return _supplier_read(supplier)
 
 
 @router.patch("/{supplier_id}", response_model=SupplierRead)
@@ -104,15 +104,18 @@ async def update_supplier(
     supplier = await supplier_crud.get_supplier(db, supplier_id)
     if supplier is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Supplier not found")
-    updated = await supplier_crud.update_supplier(db, supplier, body)
-    return SupplierRead.model_validate(updated)
+    try:
+        updated = await supplier_crud.update_supplier(db, supplier, body)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    return _supplier_read(updated)
 
 
 @router.delete("/{supplier_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_supplier(
     supplier_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
+    _: Annotated[User, Depends(require_permission("warehouse.suppliers.delete"))],
 ) -> None:
     supplier = await supplier_crud.get_supplier(db, supplier_id)
     if supplier is None:

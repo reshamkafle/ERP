@@ -7,6 +7,9 @@ export async function fetchPosProducts(params: { search?: string; limit?: number
 }
 
 export async function checkoutSale(payload: SaleCheckoutPayload) {
-  const { data } = await api.post<Sale>("/v1/sales", payload)
+  const { data } = await api.post<Sale>("/v1/sales/checkout", {
+    ...payload,
+    confirm: true,
+  })
   return data
 }

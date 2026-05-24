@@ -1,19 +1,15 @@
 import { api } from "@/lib/api"
-import type { SupplierFormValues } from "@/lib/supplier-schema"
+import {
+  formToSupplierPayload,
+  type SupplierFormValues,
+} from "@/lib/supplier-schema"
 import type {
   Supplier,
   SupplierDetail,
   SupplierListResponse,
 } from "@/types/supplier"
 
-function buildPayload(values: SupplierFormValues) {
-  return {
-    name: values.name,
-    phone: values.phone?.trim() || null,
-    email: values.email?.trim() || null,
-    notes: values.notes?.trim() || null,
-  }
-}
+export type SupplierPayload = ReturnType<typeof formToSupplierPayload>
 
 export async function fetchSuppliers(params: {
   search?: string
@@ -29,16 +25,20 @@ export async function fetchSupplier(id: number) {
   return data
 }
 
-export async function createSupplier(values: SupplierFormValues) {
-  const { data } = await api.post<Supplier>("/v1/suppliers", buildPayload(values))
+export async function createSupplier(payload: SupplierPayload) {
+  const { data } = await api.post<Supplier>("/v1/suppliers", payload)
   return data
 }
 
-export async function updateSupplier(id: number, values: SupplierFormValues) {
-  const { data } = await api.patch<Supplier>(`/v1/suppliers/${id}`, buildPayload(values))
+export async function updateSupplier(id: number, payload: SupplierPayload) {
+  const { data } = await api.patch<Supplier>(`/v1/suppliers/${id}`, payload)
   return data
 }
 
 export async function deleteSupplier(id: number) {
   await api.delete(`/v1/suppliers/${id}`)
+}
+
+export function supplierFormToPayload(values: SupplierFormValues): SupplierPayload {
+  return formToSupplierPayload(values)
 }

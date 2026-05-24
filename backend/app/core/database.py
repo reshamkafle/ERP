@@ -29,6 +29,12 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 async def init_db() -> None:
     import app.models  # noqa: F401
+    from app.core.finance_bootstrap import sync_finance_schema
+    from app.core.security_bootstrap import sync_security_schema
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    async with engine.begin() as conn:
+        await sync_security_schema(conn)
+    async with engine.begin() as conn:
+        await sync_finance_schema(conn)

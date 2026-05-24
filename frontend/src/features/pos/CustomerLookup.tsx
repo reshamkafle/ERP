@@ -30,10 +30,10 @@ export function CustomerLookup() {
 
   if (selected) {
     return (
-      <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-3 dark:border-emerald-900 dark:bg-emerald-950/40">
+      <div className="rounded-md border border-primary/30 bg-primary/5 p-3 dark:border-primary/40 dark:bg-primary/10">
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
-            <User className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <User className="size-4 shrink-0 text-primary" />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-foreground">{selected.name}</p>
               {selected.phone ? (

@@ -5,18 +5,26 @@ from pages.base import BasePage
 
 
 class AppLayout(BasePage):
-    HEADER = (By.CSS_SELECTOR, "header")
-    LOGOUT = (By.XPATH, "//button[normalize-space()='Log out']")
+    SIDEBAR = (By.CSS_SELECTOR, "[data-testid='app-sidebar']")
+    LOGOUT = (By.CSS_SELECTOR, "[data-testid='logout-button']")
 
     def wait_authenticated(self) -> "AppLayout":
-        self.wait.until(EC.visibility_of_element_located(self.HEADER))
+        self.wait.until(EC.visibility_of_element_located(self.SIDEBAR))
         return self
 
     def click_nav(self, label: str) -> None:
+        """Click sidebar link by visible label."""
         link = self.wait.until(
             EC.element_to_be_clickable(
-                (By.XPATH, f"//nav//a[normalize-space()='{label}']"),
+                (By.XPATH, f"//aside[@data-testid='app-sidebar']//a[normalize-space()='{label}']"),
             ),
+        )
+        link.click()
+
+    def click_nav_slug(self, slug: str) -> None:
+        """Click sidebar link by data-testid slug (e.g. dashboard, inventory)."""
+        link = self.wait.until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, f"[data-testid='nav-{slug}']")),
         )
         link.click()
 

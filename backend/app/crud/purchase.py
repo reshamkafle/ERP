@@ -7,10 +7,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.crud import supplier as supplier_crud
-from app.models.enums import ItemLifecycleStatus, PurchaseStatus
+from app.models.enums import DocumentPaymentStatus, ItemLifecycleStatus, PurchaseStatus
 from app.models.product import Product
-from app.models.purchase import Purchase, PurchaseItem
+from app.models.purchase import Purchase, PurchaseItem  # noqa: F401 — PurchaseItem used in select
 from app.schemas.purchase import PurchaseCreate
+from app.services.tax_calculation import get_company_settings
+
+
+def _purchase_total(items: list) -> Decimal:
+    return sum(item.quantity * item.unit_cost for item in items)
 
 
 async def search_purchase_products(
@@ -99,19 +104,12 @@ async def create_purchase(
     if supplier is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Supplier not found")
 
-    # Aggregate duplicate product lines; last unit_cost wins per product.
-    line_by_product: dict[int, tuple[int, Decimal]] = {}
+    # Aggregate duplicate product lines; unit_cost always comes from product master data.
+    line_by_product: dict[int, int] = {}
     for line in payload.items:
-        existing = line_by_product.get(line.product_id)
-        if existing:
-            line_by_product[line.product_id] = (
-                existing[0] + line.quantity,
-                line.unit_cost,
-            )
-        else:
-            line_by_product[line.product_id] = (line.quantity, line.unit_cost)
+        line_by_product[line.product_id] = line_by_product.get(line.product_id, 0) + line.quantity
 
-    product_ids = list(line_by_product.keys())
+    product_ids = list(line_by_product)
     result = await db.execute(
         select(Product).where(Product.id.in_(product_ids)).with_for_update(),
     )
@@ -124,26 +122,35 @@ async def create_purchase(
             detail=f"Product(s) not found: {sorted(missing)}",
         )
 
-    for product_id, (quantity, _unit_cost) in line_by_product.items():
+    for product_id, quantity in line_by_product.items():
         product = products[product_id]
         if product.lifecycle_status != ItemLifecycleStatus.ACTIVE:
             raise HTTPException(
                 status.HTTP_400_BAD_REQUEST,
                 detail=f"Product {product.sku} is not available for purchasing",
             )
+        if quantity < 1:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid quantity for {product.sku}",
+            )
 
+    settings = await get_company_settings(db)
     purchase = Purchase(
         supplier_id=payload.supplier_id,
         created_by_id=created_by_id,
         status=purchase_status,
         procurement_run_id=procurement_run_id,
         agent_metadata=agent_metadata,
+        currency_code=settings.default_currency,
+        payment_status=DocumentPaymentStatus.UNPAID,
     )
     db.add(purchase)
     await db.flush()
 
-    for product_id, (quantity, unit_cost) in line_by_product.items():
+    for product_id, quantity in line_by_product.items():
         product = products[product_id]
+        unit_cost = product.cost_price
         db.add(
             PurchaseItem(
                 purchase_id=purchase.id,
@@ -153,8 +160,25 @@ async def create_purchase(
             ),
         )
         if purchase_status == PurchaseStatus.RECEIVED:
-            product.stock += quantity
+            from app.models.enums import InventoryTransactionType
+            from app.services.inventory_posting import adjust_product_stock
+
             product.cost_price = unit_cost
+            await adjust_product_stock(
+                db,
+                product,
+                quantity,
+                transaction_type=InventoryTransactionType.RECEIPT,
+                reference_document=f"PURCHASE-{purchase.id}",
+                user_id=created_by_id,
+            )
+
+    loaded_items = (
+        await db.execute(
+            select(PurchaseItem).where(PurchaseItem.purchase_id == purchase.id),
+        )
+    ).scalars().all()
+    purchase.total = _purchase_total(list(loaded_items))
 
     if commit:
         await db.commit()
@@ -216,11 +240,23 @@ async def confirm_draft_purchase(
                 status.HTTP_400_BAD_REQUEST,
                 detail=f"Product {product.sku} is not available for receiving",
             )
-        product.stock += item.quantity
+        from app.models.enums import InventoryTransactionType
+        from app.services.inventory_posting import adjust_product_stock
+
         product.cost_price = item.unit_cost
+        await adjust_product_stock(
+            db,
+            product,
+            item.quantity,
+            transaction_type=InventoryTransactionType.RECEIPT,
+            reference_document=f"PURCHASE-{purchase.id}",
+            user_id=confirmed_by_id,
+        )
 
     purchase.status = PurchaseStatus.RECEIVED
     purchase.created_by_id = confirmed_by_id
+    purchase.total = _purchase_total(purchase.items)
+    purchase.payment_status = DocumentPaymentStatus.UNPAID
     await db.commit()
 
     loaded = await db.execute(

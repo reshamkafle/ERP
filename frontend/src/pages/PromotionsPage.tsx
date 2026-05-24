@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Navigate } from "react-router-dom"
 import { toast } from "sonner"
 
+import { ContentSheet } from "@/components/ContentSheet"
+import { PageHeader } from "@/components/PageHeader"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useAuth } from "@/context/AuthContext"
 import {
   confirmPromotionRun,
   createPromotionRun,
   fetchPromotionRun,
 } from "@/features/promotions/promotions-api"
 import type { PromotionProject } from "@/types/promotion"
+import { PosOnlyRedirect } from "@/components/PosOnlyRedirect"
 
 function cloneProjects(projects: PromotionProject[]): PromotionProject[] {
   return JSON.parse(JSON.stringify(projects)) as PromotionProject[]
@@ -37,17 +38,12 @@ function getErrorDetail(err: unknown): string {
 }
 
 export function PromotionsPage() {
-  const { user } = useAuth()
-  const queryClient = useQueryClient()
+    const queryClient = useQueryClient()
   const [runId, setRunId] = useState<number | null>(null)
   const [draftProjects, setDraftProjects] = useState<PromotionProject[]>([])
   const [lookback, setLookback] = useState(30)
   const [maxAnchors, setMaxAnchors] = useState(15)
   const [maxRelated, setMaxRelated] = useState(5)
-
-  if (user?.role === "CASHIER") {
-    return <Navigate to="/pos" replace />
-  }
 
   const detailQuery = useQuery({
     queryKey: ["promotion-runs", runId],
@@ -137,16 +133,15 @@ export function PromotionsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">AI promotions</h1>
-        <p className="text-sm text-muted-foreground">
-          Multi-agent workflow proposes related-item bundles with discount and duration. Approved
-          plans are stored for ops; POS checkout is unchanged in this version.
-        </p>
-      </div>
+    <PosOnlyRedirect>
+    <div className="space-y-4">
+      <PageHeader
+        title="Promotions"
+        description="Multi-agent workflow proposes related-item bundles with discount and duration. Approved plans are stored for ops; POS checkout is unchanged in this version."
+      />
 
-      <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
+      <ContentSheet className="space-y-4">
+      <section className="rounded-md border border-border bg-muted/30 p-4">
         <h2 className="text-lg font-semibold text-foreground">Run promotion agent</h2>
         <p className="mb-4 text-sm text-muted-foreground">
           Uses recent sales for anchors and co-purchase affinity plus category / product-line
@@ -319,6 +314,8 @@ export function PromotionsPage() {
           ) : null}
         </section>
       ) : null}
+      </ContentSheet>
     </div>
+    </PosOnlyRedirect>
   )
 }

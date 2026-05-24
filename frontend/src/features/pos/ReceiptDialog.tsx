@@ -124,7 +124,7 @@ function ReceiptRow({
     return (
       <div className="flex justify-between text-base font-semibold text-foreground">
         <span>{label}</span>
-        <span className="tabular-nums text-emerald-600 dark:text-emerald-400">{value}</span>
+        <span className="tabular-nums text-primary">{value}</span>
       </div>
     )
   }

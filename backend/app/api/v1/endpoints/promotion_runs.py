@@ -1,13 +1,16 @@
+import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.agent_errors import public_agent_error_message
 from app.core.database import get_db
-from app.dependencies.auth import require_roles
+from app.core.rate_limit import limiter
+from app.dependencies.auth import require_permission
 from app.models.promotion_run import PromotionRun
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.promotion import (
     PromotionConfirmBody,
     PromotionRunCreateBody,
@@ -16,13 +19,19 @@ from app.schemas.promotion import (
 )
 from app.services.promotion_runner import confirm_promotion_run, execute_promotion_run
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/promotion-runs")
 
-PromotionRoles = require_roles(UserRole.ADMIN, UserRole.MANAGER)
+PromotionRoles = require_permission("sales.promotions.manage")
+
+_AGENT_FAILURE_DETAIL = "Promotion agent run failed. Check server logs."
 
 
 @router.post("", response_model=PromotionRunResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/hour")
 async def create_promotion_run(
+    request: Request,
     body: PromotionRunCreateBody,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(PromotionRoles)],
@@ -34,9 +43,10 @@ async def create_promotion_run(
             body=body,
         )
     except BaseException as exc:
+        logger.exception("Promotion agent run failed")
         raise HTTPException(
             status.HTTP_502_BAD_GATEWAY,
-            detail=str(exc) or "Promotion agent run failed",
+            detail=_AGENT_FAILURE_DETAIL,
         ) from exc
     return PromotionRunResponse(
         id=run.id,
@@ -62,12 +72,14 @@ async def get_promotion_run(
         created_at=run.created_at,
         proposals_json=run.proposals_json,
         approved_json=run.approved_json,
-        error_message=run.error_message,
+        error_message=public_agent_error_message(run.error_message),
     )
 
 
 @router.post("/{run_id}/confirm", response_model=PromotionRunDetailResponse)
+@limiter.limit("30/hour")
 async def confirm_promotion_run_endpoint(
+    request: Request,
     run_id: int,
     body: PromotionConfirmBody,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -85,5 +97,5 @@ async def confirm_promotion_run_endpoint(
         created_at=run.created_at,
         proposals_json=run.proposals_json,
         approved_json=run.approved_json,
-        error_message=run.error_message,
+        error_message=public_agent_error_message(run.error_message),
     )

@@ -89,12 +89,19 @@ class PromotionGraphState(TypedDict, total=False):
 
 
 def _llm() -> ChatOpenAI | None:
+    from app.core.llm_url import validate_llm_base_url
+
     settings = get_settings()
     if not settings.llm_base_url or not settings.llm_model:
         return None
+    try:
+        base_url = validate_llm_base_url(settings.llm_base_url)
+    except ValueError as exc:
+        logger.warning("Invalid LLM_BASE_URL: %s", exc)
+        return None
     return ChatOpenAI(
         model=settings.llm_model,
-        base_url=settings.llm_base_url.rstrip("/"),
+        base_url=base_url,
         api_key=settings.llm_api_key or "EMPTY",
         temperature=0.2,
     )

@@ -111,7 +111,7 @@ function TotalRow({ total }: { total: number }) {
   return (
     <div className="flex justify-between text-base font-semibold text-foreground">
       <span>Total</span>
-      <span className="tabular-nums text-emerald-600 dark:text-emerald-400">
+      <span className="tabular-nums text-primary">
         {formatMoney(total)}
       </span>
     </div>
